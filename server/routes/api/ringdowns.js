@@ -2,11 +2,10 @@ const express = require('express');
 const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
 
+const { DeliveryStatus } = require('shared/constants');
 const middleware = require('../../auth/middleware');
 const models = require('../../models');
 const { dispatchRingdownUpdate } = require('../../wss');
-const { DeliveryStatus } = require('../../../shared/constants');
-
 const { setPaginationHeaders } = require('../helpers');
 
 const router = express.Router();
@@ -117,6 +116,11 @@ router.post('/', middleware.isAuthenticated, async (req, res) => {
   try {
     let patientDelivery;
     let json;
+    for (let key in req.body.patient) {
+      if (req.body.patient[key] === '') {
+        req.body.patient[key] = null;
+      }
+    }
     await models.sequelize.transaction(async (transaction) => {
       const [emsCall] = await models.EmergencyMedicalServiceCall.findOrCreate({
         where: {
